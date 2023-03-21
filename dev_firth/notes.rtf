@@ -1,0 +1,85 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;\f2\fnil\fcharset0 HelveticaNeue;
+\f3\fswiss\fcharset0 ArialMT;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red24\green25\blue27;\red255\green255\blue255;
+}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0\cname textColor;\cssrgb\c12549\c12941\c14118;\cssrgb\c100000\c100000\c100000;
+}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 TRU 		[ 0.         -0.03796281  0.10587298 -0.09959297  0.06613331]\
+PLM 		[-0.00454324 -0.04893772  0.09964266 -0.09870357  0.05655196]\
+FIR 		[-0.00451931 -0.04866836  0.09911722 -0.09818205  0.05624338]\
+2.0038112924071507\
+1.9683341758764283\
+1.9790638046209437\
+\
+That\'92s what the full output looks like, we get a marginal improvement. Time taken 13s. Not too bad. I think this is because the log likelihood make sense :)!\
+\
+Ok, let\'92s do the minimum example; only 1 row, and compare to PLM to make sure I\'92m not breaking anything as I go along!\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 \ul \ulc0 Min test outcomes:\ulnone  (make sure to maintain these)\
+\
+PLM		[-0.00454324 -0.02446953  0.04973868 -0.04897035  0.02872585] T = 16.8437034977265\
+FIR		[-0.00451931 -0.02433114  0.04946996 -0.0487061    0.02857161] T = 16.93698949551189\
+\
+\
+Stripping to basics; still works -> I\'92ve put this into the code as an all close, if true ever changes we\'92re in trouble ;). \
+\
+\pard\tx220\tx720\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\li720\fi-720\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	\uc0\u8226 	}I\'92ve changed to getting the natural logarithm of the determinant; 
+\f1\b check eval True.
+\f0\b0 \
+{\listtext	\uc0\u8226 	}Check if I get finite log-likelihoods for N=200? 
+\f1\b I do! -> already a big improvement.
+\f0\b0 \
+{\listtext	\uc0\u8226 	}Now let\'92s see what profiling tells me, which bits are slow can should be spead up..\
+{\listtext	\uc0\u8226 	}Using snakeviz + python -m cProfile -o program.prof my_program.py\
+{\listtext	\uc0\u8226 	}Now that log-likelihood is finite, let\'92s profile the N=200 case for a few rows, say n=5?\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 \
+\
+
+\f1\b CHECK THE TIME CORRELATION STUFF WITH A SINGLE STARTING TIME POINT; THIS IS IN THE GIRFFITHS SCRIPT!
+\f0\b0 \
+
+\f1\b Also check what C2 of firth correction is!\
+\
+I might want to do the same thing but for the non-symmetric threshold!? Just for completeness? Either way it doesn\'92t seem like there is a Griffiths phase here?\
+T=1.3 at transition; their way transition of model is \'93close\'94\
+\
+So what have I learned? In both cases the model is \'93close to a transition\'94 but not at the transition.\
+\
+Write this up in some notes tomorrow.\
+\
+What about C2 check? Turns out that I end up somewhere else C2 wise; so correlations not quite captured This was for T=1.025, B=1e4, N=200 rep=0 (just to keep track!)\
+True   PLM  C2     FIRTH\
+1.025 0.954 0.963 0.984 (T)\
+4.528 4.683 4.536 4.178 (C2)\
+\
+What if I try to now correct my Firth model? See what C2 and what T I get\'85?\
+(This is back in SK case btw!)\
+Doesn\'92t converge; I think this is a challenging regime to sample from regardless.\
+\
+\
+
+\f0\b0 Some more unrelated notes:\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f2 \cf2 2 * 1 * 6 * 10000 * 200 * 8 = 
+\f3 \cf3 \cb4 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 192000000 * 1.25e-10 = 0.024 GB\
+
+\f2 \cf2 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 441 * 1 * 6 * 10000 * 200 * 8 = 
+\f3 \cf3 \cb4 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 42336000000 * 1.25e-10 = 5.292 GB yeah what?\
+\
+Ok great should be fine :)!!!\
+\
+Post inference threhsolding can do something else. We invesitaget this in other work (this is what I'm doing in my thesis!!!! thats why it matters!!!)
+\f0 \cf0 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+}
